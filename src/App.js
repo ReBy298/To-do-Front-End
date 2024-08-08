@@ -1,25 +1,163 @@
-import logo from './logo.svg';
-import './App.css';
+
+
+import "./App.css";
+import React, { useEffect, useState } from "react";
+import TodoItem from "./components/todoItem";
+
+import {
+  TextField,
+  Select,
+  MenuItem,
+  Button,
+  Checkbox,
+  IconButton,
+  Typography,
+  Container,
+  Paper,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  FormControl,
+  InputLabel,
+  Grid,
+  Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Modal
+} from '@mui/material';
 
 function App() {
+  const [todoItems, setTodoItems] = useState(null);
+
+  useEffect(() => {
+    console.log("useEffect Loaded.");
+
+    if (!todoItems) {
+      fetch("http://localhost:8080/api/todoItems"
+        ,{
+          method:"GET",
+    })
+        .then((response) => response.json())
+        .then((data) => {
+          console.log("Todo Items List:", data);
+          setTodoItems(data);
+        });
+    }
+  }, [todoItems]);
+
+  const [openModal, setOpenModal] = useState(false);
+
+    const handleOpenModal = () => {
+        setOpenModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setOpenModal(false);
+    };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+    <Container maxWidth="md">
+        <Paper elevation={3} style={{ padding: '100px', margin: '20px auto', marginBottom: '100px' }}>
+                <Typography variant="h1" align="center">
+                    To-Do
+                </Typography>
+{/* Encabezado */}
+               
+                   
+                <FormControl fullWidth style={{ marginBottom: '16px' }}>
+                    <InputLabel>Name</InputLabel>
+                    <TextField variant="outlined" />
+                </FormControl>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth>
+                            <InputLabel>Priority</InputLabel>
+                            <Select>
+                                <MenuItem value="high">High</MenuItem>
+                                <MenuItem value="medium">Medium</MenuItem>
+                                <MenuItem value="low">Low</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                        <FormControl fullWidth>
+                            <InputLabel>State</InputLabel>
+                            <Select>
+                                <MenuItem value="all">All</MenuItem>
+                                <MenuItem value="done">Done</MenuItem>
+                                <MenuItem value="undone">Undone</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={12} sm={4} container justifyContent="center">
+                      <Button variant="contained" style={{ width: '50%', padding: '10px', marginTop: '5px' }}>
+                          Search
+                      </Button>
+                    </Grid>
+
+                </Grid>
+
+          {/* Task List */}
+          
+          <Grid  container  justifyContent="center" style={{marginTop: '20px'}}>
+            <Button variant="contained" onClick={handleOpenModal} >
+                Add Task
+            </Button>
+          </Grid>
+           
+          {/* Modal */}
+          <Modal open={openModal} onClose={handleCloseModal}>
+                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
+                        {/* Add modal content here */}
+                        <Typography variant="h4">Modal Content</Typography>
+                        <Button variant="contained" onClick={handleCloseModal}>
+                            Close
+                        </Button>
+                    </div>
+                </Modal> 
+            {/* Task List */} 
+            {/* Task List */}
+            {todoItems && (
+                    <TableContainer>
+                        <Table>
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Done</TableCell>
+                                    <TableCell>Name</TableCell>
+                                    <TableCell>Priority</TableCell>
+                                    <TableCell>Due Date</TableCell>
+                                    <TableCell>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {todoItems.map((task) => (
+                                    <TableRow key={task.id}>
+                                        <TableCell>
+                                            <Checkbox
+                                                // onChange={() => handleToggleDone(task.id)}
+                                                // checked={task.done}
+                                            />
+                                        </TableCell>
+                                        <TableCell>{task.name}</TableCell>
+                                        <TableCell>{task.priority}</TableCell>
+                                        <TableCell>{task.dueDate}</TableCell>
+                                        <TableCell>
+                                            {/* Add edit and delete icons/buttons */}
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                )}
+            
+        </Paper>
+    </Container>
+);
+};
 
 export default App;
