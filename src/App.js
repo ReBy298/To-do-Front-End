@@ -3,6 +3,7 @@
 import "./App.css";
 import React, { useEffect, useState } from "react";
 import TodoItem from "./components/todoItem";
+import IconButton from '@mui/material/IconButton';
 
 import {
   TextField,
@@ -10,7 +11,6 @@ import {
   MenuItem,
   Button,
   Checkbox,
-  IconButton,
   Typography,
   Container,
   Paper,
@@ -49,7 +49,7 @@ function App() {
   }, [page]);
 
   const fetchTodoItems = () => {
-    fetch(`http://localhost:8080/api/todoItems?name=${name}&priority=${priority}&state=${state}&page=${page}&pageSize=10`)
+    fetch(`http://localhost:8080/api/todos?name=${name}&priority=${priority}&state=${state}&page=${page}&pageSize=10`)
       .then((response) => response.json())
       .then((data) => {
         console.log("Todo Items List:", data); 
@@ -63,6 +63,46 @@ function App() {
     fetchTodoItems(priority, name, state);
 };
 
+const handleToggleDone = (id) => {
+    // Crea una nueva copia de todoItems
+    const newTodoItems = [...todoItems];
+
+    // Encuentra la tarea en el nuevo array por su id
+    const task = newTodoItems.find((task) => task.id === id);
+
+    if (task) {
+        // Cambia el valor de 'done'
+        task.done = !task.done;
+
+        // Actualiza la tarea en el servidor
+        updateTask(id, task)
+            .then(() => {
+                // Actualiza el estado con el nuevo array
+                setTodoItems(newTodoItems);
+            })
+            .catch((error) => {
+                console.error('Error updating task:', error);
+                // Aquí puedes manejar los errores
+            });
+    }
+}
+const updateTask = async (id, todoItem) => {
+    const response = await fetch(`http://localhost:8080/api/todos/${id}/done`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todoItem),
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    } else {
+        const data = await response.json();
+        console.log(data);
+        // Aquí puedes actualizar tu estado o hacer algo con los datos devueltos
+    }
+}
 
 
   const [openModal, setOpenModal] = useState(false);
@@ -166,15 +206,17 @@ function App() {
                                     <TableRow key={task.id}>
                                         <TableCell>
                                             <Checkbox
-                                                // onChange={() => handleToggleDone(task.id)}
-                                                // checked={task.done}
+                                                 onChange={() => handleToggleDone(task.id)}
+                                                 checked={task.done}
                                             />
                                         </TableCell>
                                         <TableCell>{task.name}</TableCell>
                                         <TableCell>{task.priority}</TableCell>
                                         <TableCell>{task.dueDate}</TableCell>
                                         <TableCell>
-                                            {/* Add edit and delete icons/buttons */}
+                                        <IconButton aria-label="delete">
+                                           
+                                        </IconButton>
                                         </TableCell>
                                     </TableRow>
                                 ))}
