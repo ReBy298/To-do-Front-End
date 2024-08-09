@@ -31,12 +31,17 @@ import {
     Modal,
     Pagination,
     PaginationItem,
+    InputAdornment
 } from '@mui/material';
 
 function App() {
   const [todoItems, setTodoItems] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [name, setName] = useState("");
+  const [priority, setPriority] = useState("All");
+  const [state, setState] = useState("All");
+  const [label, setLabel] = useState(true);
 
   useEffect(() => {
     console.log("useEffect Loaded.");
@@ -44,14 +49,22 @@ function App() {
   }, [page]);
 
   const fetchTodoItems = () => {
-    fetch(`http://localhost:8080/api/todoItems?page=${page}&pageSize=10`)
+    fetch(`http://localhost:8080/api/todoItems?name=${name}&priority=${priority}&state=${state}&page=${page}&pageSize=10`)
       .then((response) => response.json())
       .then((data) => {
-        console.log("Todo Items List:", data); // Accede a los items con "items"
-        setTodoItems(data.items); // Accede a los items con "items"
-        setTotalPages(data.totalPages); // Accede a totalPages con "totalPages"
+        console.log("Todo Items List:", data); 
+        setTodoItems(data.items); 
+        setTotalPages(data.totalPages); 
       });
   };
+
+  const handleSearch = () => {
+    
+    fetchTodoItems(priority, name, state);
+};
+
+
+
   const [openModal, setOpenModal] = useState(false);
 
     const handleOpenModal = () => {
@@ -69,35 +82,47 @@ function App() {
                     To-Do
                 </Typography>
 {/* Encabezado */}
-               
                    
-                <FormControl fullWidth style={{ marginBottom: '16px' }}>
-                    <InputLabel>Name</InputLabel>
-                    <TextField variant="outlined" />
-                </FormControl>
+<FormControl fullWidth style={{ marginBottom: '16px' }}>
+            {label && <InputLabel>Name</InputLabel>}
+            <TextField
+                variant="outlined"
+                value={name}
+                onChange={(e) => {
+                    setName(e.target.value);
+                    setLabel(!e.target.value);
+                }}
+                InputProps={{
+                    startAdornment: !label && (
+                        <InputAdornment position="start">Name</InputAdornment>
+                    ),
+                }}
+            />
+        </FormControl>
                 <Grid container spacing={2}>
                     <Grid item xs={12} sm={4}>
                         <FormControl fullWidth>
                             <InputLabel>Priority</InputLabel>
-                            <Select>
-                                <MenuItem value="high">High</MenuItem>
-                                <MenuItem value="medium">Medium</MenuItem>
-                                <MenuItem value="low">Low</MenuItem>
-                            </Select>
+                                <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                                    <MenuItem value="All">All</MenuItem>
+                                    <MenuItem value="High">High</MenuItem>
+                                    <MenuItem value="Medium">Medium</MenuItem>
+                                    <MenuItem value="Low">Low</MenuItem>
+                                </Select>
                         </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={4}>
                         <FormControl fullWidth>
                             <InputLabel>State</InputLabel>
-                            <Select>
-                                <MenuItem value="all">All</MenuItem>
-                                <MenuItem value="done">Done</MenuItem>
-                                <MenuItem value="undone">Undone</MenuItem>
+                            <Select value={state} onChange={(e) => setState(e.target.value)}>
+                                <MenuItem value="All">All</MenuItem>
+                                <MenuItem value="Done">Done</MenuItem>
+                                <MenuItem value="Undone">Undone</MenuItem>
                             </Select>
                         </FormControl>
                     </Grid>
                     <Grid item xs={12} sm={4} container justifyContent="center">
-                      <Button variant="contained" style={{ width: '50%', padding: '10px', marginTop: '5px' }}>
+                      <Button variant="contained" style={{ width: '50%', padding: '10px', marginTop: '5px' }} onClick={handleSearch}>
                           Search
                       </Button>
                     </Grid>
