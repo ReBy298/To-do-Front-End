@@ -27,28 +27,31 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Modal
+    TablePagination,
+    Modal,
+    Pagination,
+    PaginationItem,
 } from '@mui/material';
 
 function App() {
   const [todoItems, setTodoItems] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     console.log("useEffect Loaded.");
+    fetchTodoItems();
+  }, [page]);
 
-    if (!todoItems) {
-      fetch("http://localhost:8080/api/todoItems"
-        ,{
-          method:"GET",
-    })
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Todo Items List:", data);
-          setTodoItems(data);
-        });
-    }
-  }, [todoItems]);
-
+  const fetchTodoItems = () => {
+    fetch(`http://localhost:8080/api/todoItems?page=${page}&pageSize=10`)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Todo Items List:", data); // Accede a los items con "items"
+        setTodoItems(data.items); // Accede a los items con "items"
+        setTotalPages(data.totalPages); // Accede a totalPages con "totalPages"
+      });
+  };
   const [openModal, setOpenModal] = useState(false);
 
     const handleOpenModal = () => {
@@ -62,7 +65,7 @@ function App() {
   return (
     <Container maxWidth="md">
         <Paper elevation={3} style={{ padding: '100px', margin: '20px auto', marginBottom: '100px' }}>
-                <Typography variant="h1" align="center">
+                <Typography variant="h5" align="center">
                     To-Do
                 </Typography>
 {/* Encabezado */}
@@ -154,9 +157,21 @@ function App() {
                         </Table>
                     </TableContainer>
                 )}
-            
+                <Grid container justifyContent="center" style={{ marginTop: '20px' }}>
+                    <Pagination
+                    count={totalPages}
+                    page={page}
+                    onChange={(event, value) => setPage(value)}
+                    renderItem={(item) => (
+                        <PaginationItem
+                        {...item}
+                        />
+                    )}
+                    />
+                </Grid>
         </Paper>
     </Container>
+    
 );
 };
 
