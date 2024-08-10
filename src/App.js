@@ -1,10 +1,10 @@
 
-
+import { FaRegTrashCan } from "react-icons/fa6";
 import "./App.css";
+import {moment} from 'moment';
 import React, { useEffect, useState } from "react";
-import TodoItem from "./components/todoItem";
 import IconButton from '@mui/material/IconButton';
-
+import { GrEdit } from "react-icons/gr";
 import {
   TextField,
   Select,
@@ -14,10 +14,6 @@ import {
   Typography,
   Container,
   Paper,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemSecondaryAction,
   FormControl,
   InputLabel,
   Grid,
@@ -27,12 +23,12 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    TablePagination,
     Modal,
     Pagination,
     PaginationItem,
     InputAdornment
 } from '@mui/material';
+
 
 function App() {
   const [todoItems, setTodoItems] = useState(null);
@@ -42,6 +38,10 @@ function App() {
   const [priority, setPriority] = useState("All");
   const [state, setState] = useState("All");
   const [label, setLabel] = useState(true);
+  const [open, setOpen] = useState(false);
+  const [dueDate, setDueDate] = useState("");
+  const [taskName, setTaskName] = useState("Nueva Tarea");
+  const [priority_Modal, setPriorityModal] = useState("Medium");
 
   useEffect(() => {
     console.log("useEffect Loaded.");
@@ -63,6 +63,16 @@ function App() {
     fetchTodoItems(priority, name, state);
 };
 
+const handleOpen = () => {
+    setOpen(true);
+};
+
+const handleClose = () => {
+    setOpen(false);
+};
+
+
+
 const handleToggleDone = (id) => {
     // Crea una nueva copia de todoItems
     const newTodoItems = [...todoItems];
@@ -74,8 +84,9 @@ const handleToggleDone = (id) => {
         // Cambia el valor de 'done'
         task.done = !task.done;
 
-        // Actualiza la tarea en el servidor
-        updateTask(id, task)
+        if(task.done === true){
+            // Actualiza la tarea en el servidor
+            updateTaskDone(id, task)
             .then(() => {
                 // Actualiza el estado con el nuevo array
                 setTodoItems(newTodoItems);
@@ -83,10 +94,65 @@ const handleToggleDone = (id) => {
             .catch((error) => {
                 console.error('Error updating task:', error);
                 // Aquí puedes manejar los errores
-            });
+        });
+        }else{
+           // Actualiza la tarea en el servidor
+           updateTaskUndone(id, task)
+           .then(() => {
+               // Actualiza el estado con el nuevo array
+               setTodoItems(newTodoItems);
+           })
+           .catch((error) => {
+               console.error('Error updating task:', error);
+               // Aquí puedes manejar los errores
+       }); 
+        }
+        
     }
 }
-const updateTask = async (id, todoItem) => {
+
+
+const handleSubmit = (event) => {
+    event.preventDefault();
+    const newTask = {
+        name: taskName,
+        priority: priority_Modal,
+        dueDate: dueDate
+    }
+    
+    createTask(newTask)
+    .then(() => {
+        // Llama a la función para obtener las tareas del servidor
+        fetchTodoItems();
+    })
+    .catch((error) => {
+        console.error('Error creating task:', error);
+        // Aquí puedes manejar los errores
+    });
+    
+};
+
+const createTask = async (todoItem) => {
+    const response = await fetch(`http://localhost:8080/api/todos`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todoItem),
+    });
+    
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    } else {
+        const data = await response.json();
+        console.log(data);
+        // Aquí puedes actualizar tu estado o hacer algo con los datos devueltos
+    }
+}
+
+
+const updateTaskDone = async (id, todoItem) => {
+    
     const response = await fetch(`http://localhost:8080/api/todos/${id}/done`, {
         method: 'POST',
         headers: {
@@ -104,16 +170,40 @@ const updateTask = async (id, todoItem) => {
     }
 }
 
+const updateTaskUndone = async (id, todoItem) => {
+    const response = await fetch(`http://localhost:8080/api/todos/${id}/undone`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(todoItem),
+    });
 
-  const [openModal, setOpenModal] = useState(false);
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    } else {
+        const data = await response.json();
+        console.log(data);
+        // Aquí puedes actualizar tu estado o hacer algo con los datos devueltos
+    }
+}
 
-    const handleOpenModal = () => {
-        setOpenModal(true);
-    };
+const deleteTask = async (id) => {
+    const response = await fetch(`http://localhost:8080/api/todos/${id}`, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+    });
 
-    const handleCloseModal = () => {
-        setOpenModal(false);
-    };
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    } else {
+        setTodoItems(todoItems.filter(task => task.id !== id));
+        console.log(`Task with id ${id} deleted.`);
+    }
+}
+ 
 
   return (
     <Container maxWidth="md">
@@ -169,24 +259,55 @@ const updateTask = async (id, todoItem) => {
 
                 </Grid>
 
-          {/* Task List */}
+
           
           <Grid  container  justifyContent="center" style={{marginTop: '20px'}}>
-            <Button variant="contained" onClick={handleOpenModal} >
+            <Button variant="contained" onClick={handleOpen} >
                 Add Task
             </Button>
           </Grid>
            
           {/* Modal */}
-          <Modal open={openModal} onClose={handleCloseModal}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
-                        {/* Add modal content here */}
-                        <Typography variant="h4">Modal Content</Typography>
-                        <Button variant="contained" onClick={handleCloseModal}>
-                            Close
+          <Modal open={open} onClose={handleClose}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'white', padding: '20px' , borderRadius:'10px'}}>
+                <Typography variant="h5" align="center">
+                    New To-Do
+                </Typography> 
+                    <form onSubmit={handleSubmit}>
+                        <TextField
+                            label="Task Name"
+                            value={taskName}
+                            onChange={(e) => setTaskName(e.target.value)}
+                            inputProps={{ maxLength: 120 }}
+                            fullWidth
+                            required 
+                            style={{marginBottom:"20px"}}
+                        />
+                        <FormControl fullWidth  style={{marginBottom:"20px"}}>
+                            <InputLabel >Priority</InputLabel>
+                            <Select value={priority_Modal} onChange={(e) => setPriorityModal(e.target.value)} required>
+                                <MenuItem value="High">High</MenuItem>
+                                <MenuItem value="Medium">Medium</MenuItem>
+                                <MenuItem value="Low">Low</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <TextField
+                            label="Due Date"
+                            type="date"
+                            value={dueDate}
+                            onChange={(e) => setDueDate(e.target.value)}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            fullWidth
+                            style={{marginBottom:"20px"}}
+                        />
+                        <Button type="submit" variant="contained" color="primary" style={{ marginTop: '20px', align:'center' }}>
+                            Submit
                         </Button>
-                    </div>
-                </Modal> 
+                    </form>
+                </div>
+            </Modal>
             {/* Task List */} 
             {/* Task List */}
             {todoItems && (
@@ -214,9 +335,13 @@ const updateTask = async (id, todoItem) => {
                                         <TableCell>{task.priority}</TableCell>
                                         <TableCell>{task.dueDate}</TableCell>
                                         <TableCell>
-                                        <IconButton aria-label="delete">
-                                           
+                                        <IconButton style={{ marginRight: '10px' }}>
+                                            <GrEdit color="blue"/>
                                         </IconButton>
+                                        <IconButton onClick={() => deleteTask(task.id)}>
+                                            <FaRegTrashCan color="red"/>
+                                        </IconButton>
+                                        
                                         </TableCell>
                                     </TableRow>
                                 ))}
