@@ -60,8 +60,15 @@ function App() {
     const [averageTimeHigh, setAverageTimeHigh] = useState("");
     const [averageTimeMedium, setAverageTimeMedium] = useState("");
     const [averageTimeLow, SetAverageTimeLow] = useState("");
+    const [fetchFlags, setFetchFlags] = useState(true);
+    const [todoItemsFlags, setTodoItemsFlags] = useState([]);
+
 
     useEffect(() => {
+        if (fetchFlags) {
+            fetchTodoItemsFlags();
+            setFetchFlags(false);
+        }
 
         fetchTodoItems();
         fetchAverageTimes();
@@ -74,9 +81,21 @@ function App() {
             setPriorityModal('Medium');
             setDueDate('');
         }
-    }, [page, taskToEdit, sortBy1, sortBy2, order1, order2]);
+    }, [page, taskToEdit, sortBy1, sortBy2, order1, order2, fetchFlags]);
 
 
+
+    const fetchTodoItemsFlags = () => {
+        fetch(`http://localhost:9090/api/todos/colorFlags`)
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("Todo Items List Flags:", data);
+                setTodoItemsFlags(data);
+            })
+            .catch((error) => {
+                console.error('Error fetching todo items:', error);
+            });
+    };
 
     const fetchTodoItems = () => {
         fetch(`http://localhost:9090/api/todos?name=${name}&priority=${priority}&state=${state}&page=${page}&pageSize=10&sortBy1=${sortBy1}&order1=${order1}&sortBy2=${sortBy2}&order2=${order2}`)
@@ -85,8 +104,14 @@ function App() {
                 console.log("Todo Items List:", data);
                 setTodoItems(data.items);
                 setTotalPages(data.totalPages);
+            })
+            .catch((error) => {
+                console.error('Error fetching todo items:', error);
             });
     };
+
+
+
     const fetchAverageTimes = () => {
         fetch('http://localhost:9090/api/todos/averageTime')
             .then(response => response.json())
@@ -95,6 +120,9 @@ function App() {
                 setAverageTimeHigh(data.averageTimeHigh);
                 setAverageTimeMedium(data.averageTimeMedium);
                 SetAverageTimeLow(data.averageTimeLow);
+            })
+            .catch((error) => {
+                console.error('Error fetching average times:', error);
             });
     };
 
@@ -152,17 +180,20 @@ function App() {
                     .then(() => {
                         // Actualiza el estado con el nuevo array
                         setTodoItems(newTodoItems);
+                        fetchAverageTimes();
                     })
                     .catch((error) => {
                         console.error('Error updating task:', error);
                         // Aquí puedes manejar los errores
                     });
+
             } else {
                 // Actualiza la tarea en el servidor
                 updateTaskUndone(id, task)
                     .then(() => {
                         // Actualiza el estado con el nuevo array
                         setTodoItems(newTodoItems);
+                        fetchAverageTimes();
                     })
                     .catch((error) => {
                         console.error('Error updating task:', error);
@@ -188,6 +219,8 @@ function App() {
                     // Actualiza el estado de las tareas
                     setTodoItems(todoItems.map(item => item.id === taskToEdit.id ? { ...item, ...task } : item));
                     setTaskToEdit(null); // Resetea taskToEdit después de actualizar la tarea
+                    fetchTodoItems();
+                    fetchTodoItemsFlags();
                 })
                 .catch((error) => {
                     console.error('Error updating task:', error);
@@ -198,9 +231,10 @@ function App() {
             createTask(task)
                 .then(() => {
                     fetchTodoItems();
+                    fetchTodoItemsFlags();
                 })
                 .catch((error) => {
-                    console.error('Error creating task:', error);
+                    console.error('Error creating task: sera este el error', error);
                 });
         }
 
@@ -406,12 +440,13 @@ function App() {
                             </Button>
                         </form>
                     </div>
-                </Modal>
 
+
+                </Modal>
 
                 {/* Task List */}
                 {todoItems && (
-                    <TableContainer>
+                    <TableContainer style={{ borderRadius: "10px", overflow: 'hidden' }}>
                         <Table>
                             <TableHead>
                                 <TableRow>
@@ -427,34 +462,59 @@ function App() {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {todoItems.map((task) => (
-                                    <TableRow key={task.id}>
-                                        <TableCell>
-                                            <Checkbox
-                                                onChange={() => handleToggleDone(task.id)}
-                                                checked={task.done}
-                                            />
-                                        </TableCell>
-                                        <TableCell>{task.name}</TableCell>
-                                        <TableCell>{task.priority}</TableCell>
-                                        <TableCell>
-                                            {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Not Defined'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <IconButton style={{ marginRight: '10px' }} onClick={() => handleEditClick(task)}>
-                                                <GrEdit color="blue" />
-                                            </IconButton>
-                                            <IconButton onClick={() => deleteTask(task.id)}>
-                                                <FaRegTrashCan color="red" />
-                                            </IconButton>
+                                {todoItems.map((task) => {
+                                    // Encuentra el objeto correspondiente en todoItemsFlags
+                                    const flagObject = todoItemsFlags.find(flagItem => flagItem.item.id === task.id);
+                                    let flag = flagObject ? flagObject.flag : 0;
 
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                    // Asigna un color de fondo en función del valor de la bandera
+                                    let backgroundColor;
+                                    switch (flag) {
+                                        case 0:
+                                            backgroundColor = 'transparent'; // No due date – No background color
+                                            break;
+                                        case 1:
+                                            backgroundColor = '#FF7F7F'; // One week between due date and today – Light red background color
+                                            break;
+                                        case 2:
+                                            backgroundColor = '#FFFF99'; // 2 weeks between due date and today – Light yellow background color
+                                            break;
+                                        case 3:
+                                            backgroundColor = '#99FF99'; // More that 2 weeks between due date and today – Light green background color
+                                            break;
+                                        default:
+                                            backgroundColor = 'transparent';
+                                    }
+
+                                    return (
+                                        <TableRow key={task.id} style={task.done ? { backgroundColor, borderRadius: "5px", textDecoration: 'line-through' } : { backgroundColor, borderRadius: "5px" }}>
+                                            <TableCell>
+                                                <Checkbox
+                                                    onChange={() => handleToggleDone(task.id)}
+                                                    checked={task.done}
+                                                />
+                                            </TableCell>
+                                            <TableCell>{task.name}</TableCell>
+                                            <TableCell>{task.priority}</TableCell>
+                                            <TableCell>
+                                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Not Defined'}
+                                            </TableCell>
+                                            <TableCell>
+                                                <IconButton style={{ marginRight: '10px' }} onClick={() => handleEditClick(task)}>
+                                                    <GrEdit />
+                                                </IconButton>
+                                                <IconButton onClick={() => deleteTask(task.id)}>
+                                                    <FaRegTrashCan />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
                             </TableBody>
                         </Table>
                     </TableContainer>
                 )}
+
                 <Grid container justifyContent="center" style={{ marginTop: '20px' }}>
                     <Pagination
                         count={totalPages}
@@ -474,7 +534,7 @@ function App() {
                             Average time to finish tasks:
                         </Typography>
                         <Typography variant="h4" color="secondary">
-                            {(averageTimeAll / 60000).toFixed(2)} min
+                            {isNaN(averageTimeAll) ? "No done tasks" : (averageTimeAll / 60000).toFixed(2) + " min"}
                         </Typography>
                     </Grid>
                     <Grid item xs={12} sm={6} style={{ textAlign: 'center' }}>
@@ -482,13 +542,13 @@ function App() {
                             Average time to finish tasks by priority:
                         </Typography>
                         <Typography variant="body1">
-                            {"High"}: {(averageTimeHigh / 60000).toFixed(2)} min
+                            {"High"}: {isNaN(averageTimeHigh) ? "No done tasks" : (averageTimeHigh / 60000).toFixed(2) + " min"}
                         </Typography>
                         <Typography variant="body1">
-                            {"Medium"}: {(averageTimeMedium / 60000).toFixed(2)} min
+                            {"Medium"}: {isNaN(averageTimeMedium) ? "No done tasks" : (averageTimeMedium / 60000).toFixed(2) + " min"}
                         </Typography>
                         <Typography variant="body1">
-                            {"Low"}: {(averageTimeLow / 60000).toFixed(2)} min
+                            {"Low"}: {isNaN(averageTimeLow) ? "No done tasks" : (averageTimeLow / 60000).toFixed(2) + " min"}
                         </Typography>
                     </Grid>
                 </Grid>
