@@ -1,6 +1,14 @@
-# Getting Started with Create React App
+# To-Do App in React
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This project is a To-Do application developed with React.
+
+## Getting Started
+
+To get a copy of the project, perform a `git clone` of the repository:
+
+```bash
+git clone https://github.com/ReBy298/To-do-Front-End.git
+```
 
 ## Available Scripts
 
