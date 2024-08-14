@@ -29,8 +29,8 @@ function App() {
     const [label, setLabel] = useState(true);
     const [open, setOpen] = useState(false);
     const [dueDate, setDueDate] = useState("");
-    const [taskName, setTaskName] = useState("Nueva Tarea");
-    const [priority_Modal, setPriorityModal] = useState("Medium");
+    const [taskName, setTaskName] = useState("");
+    const [priority_Modal, setPriorityModal] = useState("");
     const [taskToEdit, setTaskToEdit] = useState(null);
     const [sortBy1, setSortBy1] = useState("dueDate");
     const [order1, setOrder1] = useState("asc");
@@ -236,6 +236,7 @@ function App() {
         } else {
             const data = await response.json();
             console.log(data);
+            fetchTodoItems();
             // Aquí puedes actualizar tu estado o hacer algo con los datos devueltos
         }
     }
@@ -256,6 +257,8 @@ function App() {
         } else {
             const data = await response.json();
             console.log(data);
+            fetchTodoItems();
+            fetchAverageTimes();
             // Aquí puedes actualizar tu estado o hacer algo con los datos devueltos
         }
     }
@@ -273,14 +276,15 @@ function App() {
             throw new Error(`HTTP error! status: ${response.status}`);
         } else {
             const data = await response.json();
+            fetchTodoItems();
+            fetchAverageTimes();
             console.log(data);
-            // Aquí puedes actualizar tu estado o hacer algo con los datos devueltos
         }
     }
 
     const handleEditClick = (task) => {
         setTaskToEdit(task);
-        setDueDate(task.dueDate); // Asegúrate de que estás estableciendo el estado de dueDate
+        setDueDate(task.dueDate); 
         handleOpen();
     };
 
@@ -299,7 +303,8 @@ function App() {
         } else {
             const data = await response.json();
             console.log(data);
-            // Aquí puedes actualizar tu estado o hacer algo con los datos devueltos
+            fetchTodoItemsFlags();
+            fetchTodoItems();
         }
     }
     const deleteTask = async (id) => {
@@ -317,6 +322,7 @@ function App() {
             console.log(`Task with id ${id} deleted.`);
             fetchTodoItemsFlags();
             fetchTodoItems();
+            fetchAverageTimes();
         }
     }
 
