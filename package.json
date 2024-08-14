@@ -12,7 +12,7 @@
     "@mui/x-date-pickers": "^7.12.1",
     "@syncfusion/ej2-react-calendars": "^26.2.8",
     "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
+    "@testing-library/react": "^15.0.6",
     "@testing-library/user-event": "^13.5.0",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.12",

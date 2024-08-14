@@ -1,33 +1,14 @@
 
-import { FaRegTrashCan } from "react-icons/fa6";
 import "./App.css";
+import { Header } from "./components/Header/Header";
+import { Tasks_List } from "./components/TaskList/Tasks_List";
+import {Modal_PopUp} from "./components/Modal/Modal_PopUp";
+import { Tasks_Pagination } from "./components/Pagination/Tasks_Pagination";
+import { Footer } from "./components/Footer/Footer";
 import React, { useEffect, useState } from "react";
-import IconButton from '@mui/material/IconButton';
-import { GrEdit } from "react-icons/gr";
-import { FaSort } from "react-icons/fa";
 import {
-    TextField,
-    Select,
-    MenuItem,
-    Button,
-    Checkbox,
-    Typography,
     Container,
     Paper,
-    FormControl,
-    InputLabel,
-    Grid,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Modal,
-    Pagination,
-    PaginationItem,
-    InputAdornment
-
 } from '@mui/material';
 
 import "../node_modules/@syncfusion/ej2-base/styles/material.css";
@@ -37,7 +18,6 @@ import "../node_modules/@syncfusion/ej2-inputs/styles/material.css";
 import "../node_modules/@syncfusion/ej2-popups/styles/material.css";
 import "../node_modules/@syncfusion/ej2-react-calendars/styles/material.css";
 
-import { DateTimePickerComponent } from '@syncfusion/ej2-react-calendars';
 
 function App() {
     const [todoItems, setTodoItems] = useState(null);
@@ -335,6 +315,8 @@ function App() {
         } else {
             setTodoItems(todoItems.filter(task => task.id !== id));
             console.log(`Task with id ${id} deleted.`);
+            fetchTodoItemsFlags();
+            fetchTodoItems();
         }
     }
 
@@ -342,216 +324,58 @@ function App() {
     return (
         <Container maxWidth="md">
             <Paper elevation={3} style={{ padding: '100px', margin: '20px auto', marginBottom: '100px' }}>
-                <Typography variant="h5" align="center">
-                    To-Do
-                </Typography>
-                {/* Encabezado */}
-
-                <FormControl fullWidth style={{ marginBottom: '16px' }}>
-                    {label && <InputLabel>Name</InputLabel>}
-                    <TextField
-                        variant="outlined"
-                        value={name}
-                        onChange={(e) => {
-                            setName(e.target.value);
-                            setLabel(!e.target.value);
-                        }}
-                        InputProps={{
-                            startAdornment: !label && (
-                                <InputAdornment position="start">Name</InputAdornment>
-                            ),
-                        }}
-                    />
-                </FormControl>
-                <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                        <FormControl fullWidth>
-                            <InputLabel>Priority</InputLabel>
-                            <Select value={priority} onChange={(e) => setPriority(e.target.value)}>
-                                <MenuItem value="All">All</MenuItem>
-                                <MenuItem value="High">High</MenuItem>
-                                <MenuItem value="Medium">Medium</MenuItem>
-                                <MenuItem value="Low">Low</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                        <FormControl fullWidth>
-                            <InputLabel>State</InputLabel>
-                            <Select value={state} onChange={(e) => setState(e.target.value)}>
-                                <MenuItem value="All">All</MenuItem>
-                                <MenuItem value="Done">Done</MenuItem>
-                                <MenuItem value="Undone">Undone</MenuItem>
-                            </Select>
-                        </FormControl>
-                    </Grid>
-                    <Grid item xs={12} sm={4} container justifyContent="center">
-                        <Button variant="contained" style={{ width: '50%', padding: '10px', marginTop: '5px' }} onClick={handleSearch}>
-                            Search
-                        </Button>
-                    </Grid>
-
-                </Grid>
-
-
-
-                <Grid container justifyContent="center" style={{ marginTop: '20px' }}>
-                    <Button variant="contained" onClick={handleOpen} >
-                        Add Task
-                    </Button>
-                </Grid>
-
+                {/* Header */}
+                <Header 
+                name={name} 
+                setName={setName} 
+                priority={priority} 
+                setPriority={setPriority} 
+                state={state} 
+                setState={setState} 
+                label={label} 
+                setLabel={setLabel} 
+                handleSearch={handleSearch} 
+                handleOpen={handleOpen} 
+                />
                 {/* Modal */}
-                <Modal open={open} onClose={handleClose}>
-                    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', backgroundColor: 'white', padding: '20px', borderRadius: '10px' }}>
-                        <Typography variant="h5" align="center">
-                            {taskToEdit ? 'Edit To-Do' : 'New To-Do'}
-                        </Typography>
-                        <form onSubmit={handleSubmit}>
-                            <TextField
-                                label="Task Name"
-                                value={taskName}
-                                onChange={(e) => setTaskName(e.target.value)}
-                                inputProps={{ maxLength: 120 }}
-                                fullWidth
-                                required
-                                style={{ marginBottom: "20px" }}
-                            />
-                            <FormControl fullWidth style={{ marginBottom: "20px" }}>
-                                <InputLabel >Priority</InputLabel>
-                                <Select value={priority_Modal} onChange={(e) => setPriorityModal(e.target.value)} required>
-                                    <MenuItem value="High">High</MenuItem>
-                                    <MenuItem value="Medium">Medium</MenuItem>
-                                    <MenuItem value="Low">Low</MenuItem>
-                                </Select>
-                            </FormControl>
-                            <DateTimePickerComponent
-                                value={dueDate} // Convierte dueDate a un objeto Date
-                                onChange={(e) => {
-                                    // Convierte la fecha y hora a tu zona horaria local
-                                    const localDateTime = new Date(e.value.getTime() - e.value.getTimezoneOffset() * 60000);
-                                    setDueDate(localDateTime);
-                                }}
-                                min={new Date()}
-                            />
-
-                            <Button type="submit" variant="contained" color="primary" style={{ marginTop: '20px', align: 'center' }}>
-                                {taskToEdit ? 'Save Changes' : 'Submit'}
-                            </Button>
-                        </form>
-                    </div>
-
-
-                </Modal>
+                <Modal_PopUp 
+                open={open} 
+                handleClose={handleClose} 
+                taskToEdit={taskToEdit} 
+                handleSubmit={handleSubmit} 
+                taskName={taskName} 
+                setTaskName={setTaskName} 
+                priority_Modal={priority_Modal} 
+                setPriorityModal={setPriorityModal} 
+                dueDate={dueDate} 
+                setDueDate={setDueDate} />
 
                 {/* Task List */}
-                {todoItems && (
-                    <TableContainer style={{ borderRadius: "10px", overflow: 'hidden' }}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Done</TableCell>
-                                    <TableCell>Name</TableCell>
-                                    <TableCell> Priority<IconButton style={{ marginLeft: '10px' }} onClick={() => handlePrioritySortClick('priority')}>
-                                        <FaSort />
-                                    </IconButton></TableCell>
-                                    <TableCell>Due Date<IconButton style={{ marginLeft: '10px' }} onClick={() => handleDueDateSortClick('dueDate')} >
-                                        <FaSort />
-                                    </IconButton></TableCell>
-                                    <TableCell>Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {todoItems.map((task) => {
-                                    // Encuentra el objeto correspondiente en todoItemsFlags
-                                    const flagObject = todoItemsFlags.find(flagItem => flagItem.item.id === task.id);
-                                    let flag = flagObject ? flagObject.flag : 0;
+                <Tasks_List
+                todoItems={todoItems}
+                handlePrioritySortClick={handlePrioritySortClick}
+                handleDueDateSortClick={handleDueDateSortClick}
+                todoItemsFlags={todoItemsFlags}
+                handleToggleDone={handleToggleDone}
+                handleEditClick={handleEditClick}
+                deleteTask={deleteTask}
+                />
 
-                                    // Asigna un color de fondo en función del valor de la bandera
-                                    let backgroundColor;
-                                    switch (flag) {
-                                        case 0:
-                                            backgroundColor = 'transparent'; // No due date – No background color
-                                            break;
-                                        case 1:
-                                            backgroundColor = '#FF7F7F'; // One week between due date and today – Light red background color
-                                            break;
-                                        case 2:
-                                            backgroundColor = '#FFFF99'; // 2 weeks between due date and today – Light yellow background color
-                                            break;
-                                        case 3:
-                                            backgroundColor = '#99FF99'; // More that 2 weeks between due date and today – Light green background color
-                                            break;
-                                        default:
-                                            backgroundColor = 'transparent';
-                                    }
+                {/* Pagination */}
+                <Tasks_Pagination
+                totalPages={totalPages}
+                page={page}
+                setPage={setPage}
+                />
 
-                                    return (
-                                        <TableRow key={task.id} style={task.done ? { backgroundColor, borderRadius: "5px", textDecoration: 'line-through' } : { backgroundColor, borderRadius: "5px" }}>
-                                            <TableCell>
-                                                <Checkbox
-                                                    onChange={() => handleToggleDone(task.id)}
-                                                    checked={task.done}
-                                                />
-                                            </TableCell>
-                                            <TableCell>{task.name}</TableCell>
-                                            <TableCell>{task.priority}</TableCell>
-                                            <TableCell>
-                                                {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Not Defined'}
-                                            </TableCell>
-                                            <TableCell>
-                                                <IconButton style={{ marginRight: '10px' }} onClick={() => handleEditClick(task)}>
-                                                    <GrEdit />
-                                                </IconButton>
-                                                <IconButton onClick={() => deleteTask(task.id)}>
-                                                    <FaRegTrashCan />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
-                                })}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                )}
-
-                <Grid container justifyContent="center" style={{ marginTop: '20px' }}>
-                    <Pagination
-                        count={totalPages}
-                        page={page}
-                        onChange={(event, value) => setPage(value)}
-                        renderItem={(item) => (
-                            <PaginationItem
-                                {...item}
-                            />
-                        )}
-                    />
-                </Grid>
                 {/* Footer */}
-                <Grid container spacing={2} justifyContent="center" style={{ marginTop: '20px' }}>
-                    <Grid item xs={12} sm={6} style={{ textAlign: 'center' }}>
-                        <Typography variant="h6" gutterBottom>
-                            Average time to finish tasks:
-                        </Typography>
-                        <Typography variant="h4" color="secondary">
-                            {isNaN(averageTimeAll) ? "No done tasks" : (averageTimeAll / 60000).toFixed(2) + " min"}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={6} style={{ textAlign: 'center' }}>
-                        <Typography variant="h6" gutterBottom>
-                            Average time to finish tasks by priority:
-                        </Typography>
-                        <Typography variant="body1">
-                            {"High"}: {isNaN(averageTimeHigh) ? "No done tasks" : (averageTimeHigh / 60000).toFixed(2) + " min"}
-                        </Typography>
-                        <Typography variant="body1">
-                            {"Medium"}: {isNaN(averageTimeMedium) ? "No done tasks" : (averageTimeMedium / 60000).toFixed(2) + " min"}
-                        </Typography>
-                        <Typography variant="body1">
-                            {"Low"}: {isNaN(averageTimeLow) ? "No done tasks" : (averageTimeLow / 60000).toFixed(2) + " min"}
-                        </Typography>
-                    </Grid>
-                </Grid>
+                <Footer
+                averageTimeAll={averageTimeAll}
+                averageTimeHigh={averageTimeHigh}
+                averageTimeMedium={averageTimeMedium}
+                averageTimeLow={averageTimeLow}
+                />
+
 
 
             </Paper>
