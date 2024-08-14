@@ -1,6 +1,7 @@
 # To-Do App in React with Back-End in Spring Boot
 
 This project is a To-Do application developed with React for the front-end and Spring Boot for the back-end.
+To run this project you need to run first the Back-End.
 
 ## Repositories
 
