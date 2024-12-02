@@ -1,4 +1,3 @@
-
 import IconButton from '@mui/material/IconButton';
 import { GrEdit } from "react-icons/gr";
 import { FaSort } from "react-icons/fa";
@@ -13,10 +12,15 @@ import {
     TableHead,
     TableRow,
 } from '@mui/material';
+
+// Tasks_List component to display and manage the list of tasks
 export function Tasks_List({ todoItems, handlePrioritySortClick, handleDueDateSortClick, todoItemsFlags, handleToggleDone, handleEditClick, deleteTask }) {
     return (
+        // Container to hold the tasks list
         <Container style={{width:"100%"}}>
+            {/* Check if there are todo items to display */}
             {todoItems && (
+                // Table container to display the tasks in a table format
                 <TableContainer style={{ borderRadius: "10px", overflow: 'hidden' }}>
                     <Table>
                         <TableHead>
@@ -34,11 +38,11 @@ export function Tasks_List({ todoItems, handlePrioritySortClick, handleDueDateSo
                         </TableHead>
                         <TableBody>
                             {todoItems.map((task) => {
-                                // Encuentra el objeto correspondiente en todoItemsFlags
+                                // Find the corresponding flag object in todoItemsFlags
                                 const flagObject = todoItemsFlags.find(flagItem => flagItem.item.id === task.id);
                                 let flag = flagObject ? flagObject.flag : 0;
 
-                                // Asigna un color de fondo en función del valor de la bandera
+                                // Assign a background color based on the flag value
                                 let backgroundColor;
                                 switch (flag) {
                                     case 0:
@@ -51,13 +55,14 @@ export function Tasks_List({ todoItems, handlePrioritySortClick, handleDueDateSo
                                         backgroundColor = '#FFFF99'; // 2 weeks between due date and today – Light yellow background color
                                         break;
                                     case 3:
-                                        backgroundColor = '#99FF99'; // More that 2 weeks between due date and today – Light green background color
+                                        backgroundColor = '#99FF99'; // More than 2 weeks between due date and today – Light green background color
                                         break;
                                     default:
                                         backgroundColor = 'transparent';
                                 }
 
                                 return (
+                                    // Table row for each task, with conditional styling based on task completion and flag
                                     <TableRow key={task.id} style={task.done ? { backgroundColor, borderRadius: "5px", textDecoration: 'line-through' } : { backgroundColor, borderRadius: "5px" }}>
                                         <TableCell>
                                             <Checkbox
@@ -88,7 +93,3 @@ export function Tasks_List({ todoItems, handlePrioritySortClick, handleDueDateSo
         </Container>
     )
 }
-
-
-
-
